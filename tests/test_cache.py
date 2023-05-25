@@ -50,7 +50,7 @@ def test_cache_batched():
     def _fn(xs):
         return [some_random_fn(x) for x in xs]
     
-    cached_fn = cache.batched("test")(_fn)
+    cached_fn = cache.each("test")(_fn)
 
     assert _fn(xs) != cached_fn(xs)
     assert cached_fn(xs) == cached_fn(xs)

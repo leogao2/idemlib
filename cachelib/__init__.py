@@ -111,7 +111,7 @@ class CacheHelper:
         # for backwards compatibility
         return self.object_hasher.hash_obs(*args, **kwargs)
     
-    def batched(self, key=None):
+    def each(self, key=None):
         def wrapper(fn: F, self, key) -> F:
             @wraps(fn)
             def _fn(it: list[T], **kwargs: Any) -> list[T]:
