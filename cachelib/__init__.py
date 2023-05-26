@@ -8,7 +8,7 @@ from typing import Any, Callable, Iterable, Optional, TypeVar, Union, Coroutine,
 
 import blobfile as bf
 
-from cachelib.hashers import ObjectHasherV1
+import cachelib.hashers as hashers
 
 T = TypeVar("T")
 
@@ -67,7 +67,7 @@ class CacheHelper:
             assert isinstance(save_location, str)
             self.save_location = save_location if save_location[-1] != "/" else save_location[:-1]
         
-        self.object_hasher = object_hasher or ObjectHasherV1()
+        self.object_hasher = object_hasher or hashers.ObjectHasherV1()
 
         # for backwards compatibility
         self.special_hashing = self.object_hasher.special_hashing
@@ -278,7 +278,3 @@ class CacheHelper:
             return _wrapper(ret)
         else:
             return ret
-
-__all__ = [
-    "CacheHelper",
-]

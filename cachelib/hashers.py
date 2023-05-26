@@ -104,9 +104,6 @@ class ObjectHasherV1:
                 # don't do anything with asyncio objects
                 return None
 
-            if hasattr(obj, "_to_json"):
-                return obj._to_json()
-
             return super().default(obj)
 
     def hash_obs(self, *args, **kwargs):
