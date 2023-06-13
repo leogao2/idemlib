@@ -45,7 +45,7 @@ class ObjectHasherV1:
         )
         self.special_hashing["torch.dtype"] = lambda x: ("torch.dtype", str(x))
         self.special_hashing["torch.device"] = lambda x: ("torch.device", str(x))
-        self.special_hashing["torch.nn.Module"] = lambda x: ("torch.nn.Module", self._prepare_for_hash(x.state_dict()))
+        self.special_hashing["torch.nn.modules.module.Module"] = lambda x: ("torch.nn.Module", self._prepare_for_hash(x.state_dict()))
 
         self.special_hashing["pyspark.rdd.RDD"] = lambda x: ("pyspark.rdd.RDD", self._hash_rdd(x))
         self.special_hashing["pyspark.SparkContext"] = lambda x: (
@@ -67,10 +67,12 @@ class ObjectHasherV1:
         self.special_hashing["cachelib.CacheHelper"] = lambda x: ("cachelib.CacheHelper", self._prepare_for_hash(x.object_hasher)) # would require circular imports
         self.special_hashing["cachelib.hashers.ObjectHasherV1"] = lambda x: ("cachelib.hashers.ObjectHasherV1",)
 
-    def _prepare_for_hash(self, x):
-        type_str = _fullname(x.__class__)
+        self.special_hashing["tiktoken.core.Encoding"] = lambda x: ("tiktoken.core.Encoding", x.name)
 
-        superclasses = [type_str]
+        self.special_hashing["cdict.C"] = lambda x: ("cdict.C", self._prepare_for_hash(list(x)))
+    def _prepare_for_hash(self, x):
+
+        superclasses = [_fullname(x) for x in x.__class__.__mro__]
         for type_, fn in self.special_hashing.items():
             if isinstance(type_, str):
                 if type_ in superclasses:

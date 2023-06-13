@@ -4,7 +4,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 setup(name='cachelib',
-      version='0.1.1',
+      version='0.1.2',
       description='caching utilities',
       author='Leo Gao',
       author_email='leogao31@gmail.com',
