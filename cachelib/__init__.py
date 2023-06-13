@@ -157,6 +157,11 @@ class CacheHelper:
 
             fn.__annotations__["cache_version"] = Any
 
+            try:
+                fn.__annotations__["cache_version"] = Any
+            except AttributeError:
+                pass
+
             if key is None:
                 key = self.hash_obs(fn.__module__, fn.__name__, inspect.getsource(fn))[:8] + "_0"
                 # the decorator part of the stack is always the same size because we only get here if key is None

@@ -16,7 +16,7 @@ class ObjectHasherV1:
 
         self.special_hashing[list] = lambda x: list(map(self._prepare_for_hash, x))
         self.special_hashing[dict] = lambda x: {
-            self._prepare_for_hash(k): self._prepare_for_hash(v) for k, v in x.items()
+            _dict_key(self._prepare_for_hash(k)): self._prepare_for_hash(v) for k, v in x.items()
         }
         self.special_hashing[tuple] = lambda x: tuple(map(self._prepare_for_hash, x))
         self.special_hashing[types.FunctionType] = lambda x: (
@@ -45,6 +45,7 @@ class ObjectHasherV1:
         )
         self.special_hashing["torch.dtype"] = lambda x: ("torch.dtype", str(x))
         self.special_hashing["torch.device"] = lambda x: ("torch.device", str(x))
+        self.special_hashing["torch.nn.Module"] = lambda x: ("torch.nn.Module", self._prepare_for_hash(x.state_dict()))
 
         self.special_hashing["pyspark.rdd.RDD"] = lambda x: ("pyspark.rdd.RDD", self._hash_rdd(x))
         self.special_hashing["pyspark.SparkContext"] = lambda x: (
@@ -59,6 +60,12 @@ class ObjectHasherV1:
             self._prepare_for_hash(x.dtype),
         )
         self.special_hashing["numpy.dtype"] = lambda x: ("numpy.dtype", str(x))
+
+        # cachelib objects. The reason we _don't_ hash the cache location is that
+        # semantically, the cache should be totally transparent, and you're not supposed
+        # to use the cache location to store different copies of the thing that you want to tell apart later.
+        self.special_hashing["cachelib.CacheHelper"] = lambda x: ("cachelib.CacheHelper", self._prepare_for_hash(x.object_hasher)) # would require circular imports
+        self.special_hashing["cachelib.hashers.ObjectHasherV1"] = lambda x: ("cachelib.hashers.ObjectHasherV1",)
 
     def _prepare_for_hash(self, x):
         type_str = _fullname(x.__class__)
@@ -125,3 +132,9 @@ def _fullname(klass):
 
 def hash_object(ob):
     return ObjectHasherV1().hash_obs(ob)
+
+def _dict_key(x):
+    # tuples can't be the key of a json dict
+    if isinstance(x, tuple):
+        return str(x)
+    return x
