@@ -69,8 +69,11 @@ class ObjectHasherV1:
 
         self.special_hashing["tiktoken.core.Encoding"] = lambda x: ("tiktoken.core.Encoding", x.name)
 
-        self.special_hashing["cdict.C"] = lambda x: ("cdict.C", self._prepare_for_hash(list(x)))
+        self.special_hashing["cdict.main.cdict"] = lambda x: ("cdict.C", self._prepare_for_hash(list(x)))
     def _prepare_for_hash(self, x):
+
+        if hasattr(x, "__idemlib_hash__"):
+            return x.__idemlib_hash__(self)
 
         superclasses = [_fullname(x) for x in x.__class__.__mro__]
         for type_, fn in self.special_hashing.items():
