@@ -1,5 +1,5 @@
-import cachelib
-import cachelib.hashers
+import idemlib
+import idemlib.hashers
 
 
 import random
@@ -10,7 +10,7 @@ def some_random_fn(i: int):
 
 def test_hasher():
     # TODO: more comprehensive tests of hasher
-    hasher = cachelib.hashers.ObjectHasherV1()
+    hasher = idemlib.hashers.ObjectHasherV1()
 
     assert hasher.hash_obs(None) == hasher.hash_obs(None)
 
@@ -23,8 +23,8 @@ def test_hasher():
     assert hasher.hash_obs((1, 2)) == hasher.hash_obs((1, 2))
     assert hasher.hash_obs((1, 2)) != hasher.hash_obs((1, 3))
 
-    assert hasher.hash_obs(cachelib.CacheHelper) == hasher.hash_obs(cachelib.CacheHelper)
-    assert hasher.hash_obs(cachelib.CacheHelper) != hasher.hash_obs(cachelib.hashers.ObjectHasherV1)
+    assert hasher.hash_obs(idemlib.CacheHelper) == hasher.hash_obs(idemlib.CacheHelper)
+    assert hasher.hash_obs(idemlib.CacheHelper) != hasher.hash_obs(idemlib.hashers.ObjectHasherV1)
 
     assert hasher.hash_obs(slice(1, 2)) == hasher.hash_obs(slice(1, 2))
     assert hasher.hash_obs(slice(1, 2)) != hasher.hash_obs(slice(1, 3))
@@ -34,7 +34,7 @@ def test_hasher():
 
 
 def test_cache_basic():
-    cache = cachelib.CacheHelper(None)
+    cache = idemlib.CacheHelper(None)
     cached_some_random_fn = cache("test")(some_random_fn)
 
     assert some_random_fn(1) != some_random_fn(1)
@@ -45,7 +45,7 @@ def test_cache_basic():
 def test_cache_batched():
     xs = list(range(100))
 
-    cache = cachelib.CacheHelper(None)
+    cache = idemlib.CacheHelper(None)
 
     def _fn(xs):
         return [some_random_fn(x) for x in xs]
@@ -82,7 +82,7 @@ def test_cache_async():
     async def test_fn(i: int):
         return random.randint(0, 1000000)
 
-    cache = cachelib.CacheHelper(None)
+    cache = idemlib.CacheHelper(None)
 
     cached_test_fn = cache("test")(test_fn)
 
@@ -114,7 +114,7 @@ def test_local_file_cache():
     import os
 
     with tempfile.TemporaryDirectory() as tmpdirname:
-        cache = cachelib.CacheHelper(tmpdirname)
+        cache = idemlib.CacheHelper(tmpdirname)
 
         def test_fn(i: int):
             return random.randint(0, 1000000)

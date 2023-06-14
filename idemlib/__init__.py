@@ -8,13 +8,14 @@ from typing import Any, Callable, Iterable, Optional, TypeVar, Union, Coroutine,
 
 import blobfile as bf
 
-import cachelib.hashers as hashers
+import idemlib.hashers as hashers
 
 T = TypeVar("T")
 
 # either callable or coroutine
 F = TypeVar("F", Callable[..., Any], Coroutine[Any, Any, Any], Awaitable[Any])
 
+# TODO: hierarchical cache
 class CacheHelper:
     """
     CacheHelper helps cache the return values of function calls based on their
@@ -112,7 +113,7 @@ class CacheHelper:
         return self.object_hasher.hash_obs(*args, **kwargs)
     
     def each(self, key=None):
-        def wrapper(fn: F, self, key) -> F:
+        def wrapper(fn, self, key):
             @wraps(fn)
             def _fn(it: list[T], **kwargs: Any) -> list[T]:
                 _sentinel = object()
@@ -121,7 +122,7 @@ class CacheHelper:
                 to_run_hashes = []
                 to_run_hashes_orig_inds = defaultdict(list)
                 for i, x in enumerate(it):
-                    hash = self.hash_obs(x)
+                    hash = self.hash_obs(x, **kwargs)
                     overall_input_hash = key + "_" + hash
                     try:
                         ob = self._read_cache_data(fn, overall_input_hash)
@@ -155,10 +156,12 @@ class CacheHelper:
         def wrapper(fn: F, self, key, _callstackoffset) -> F:
             # execution always gets here, before the function is called
 
-            fn.__annotations__["cache_version"] = Any
+            if not callable(fn):
+                return wrapper(lambda: fn, self, key, _callstackoffset)()
 
             try:
                 fn.__annotations__["cache_version"] = Any
+                fn.__annotations__["cache_disable"] = bool
             except AttributeError:
                 pass
 
@@ -173,10 +176,14 @@ class CacheHelper:
             @wraps(fn)
             def _fn(*args, **kwargs):
                 # execution gets here only after the function is called
-
+                
+                if kwargs.pop(kwargs.pop("_idemlib_disable_kwarg", "cache_disable"), False):
+                    return fn(*args, **kwargs)
+                
                 arg_hash = self.hash_obs(*args, **kwargs)
 
-                kwargs.pop(kwargs.pop("_pyfra_nonce_kwarg", "cache_version"), None)
+                kwargs.pop(kwargs.pop("_idemlib_nonce_kwarg", "cache_version"), None)
+                
 
                 overall_input_hash = key + "_" + arg_hash
 
@@ -283,3 +290,11 @@ class CacheHelper:
             return _wrapper(ret)
         else:
             return ret
+
+class CacheMigrationHelper(CacheHelper):
+    def __init__(self, save_location, object_hasher, old_cache_helpers):
+        super().__init__(save_location, object_hasher)
+
+        self.old_cache_helpers = old_cache_helpers
+    
+    # def 

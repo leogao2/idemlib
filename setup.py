@@ -3,12 +3,12 @@ from distutils.core import setup
 
 from setuptools import find_packages
 
-setup(name='cachelib',
+setup(name='idemlib',
       version='0.1.3',
       description='caching utilities',
       author='Leo Gao',
       author_email='leogao31@gmail.com',
-      url='https://github.com/leogao2/cachelib',
+      url='https://github.com/leogao2/idemlib',
       packages=find_packages(),
       install_requires=[
           'blobfile'
