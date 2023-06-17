@@ -92,7 +92,7 @@ class ObjectHasherV1:
                 return fn(x)
 
         if dataclasses.is_dataclass(x):
-            return self._prepare_for_hash(dataclasses.asdict(x))
+            return self._prepare_for_hash(dataclasses.asdict(x) | {"__dataclass__": x.__class__.__name__})
 
         # self.id_to_hash[id(x)] = x
         return x
