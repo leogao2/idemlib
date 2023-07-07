@@ -291,10 +291,4 @@ class CacheHelper:
         else:
             return ret
 
-class CacheMigrationHelper(CacheHelper):
-    def __init__(self, save_location, object_hasher, old_cache_helpers):
-        super().__init__(save_location, object_hasher)
 
-        self.old_cache_helpers = old_cache_helpers
-    
-    # def 

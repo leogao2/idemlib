@@ -21,10 +21,10 @@ class ObjectHasherV1:
             _dict_key(self._prepare_for_hash(k)): self._prepare_for_hash(v) for k, v in x.items()
         }
         self.special_hashing[tuple] = lambda x: tuple(map(self._prepare_for_hash, x))
-        self.special_hashing[types.FunctionType] = lambda x: (
-            "function",
-            x.__name__,
-        )  # TODO: better semantics
+        # self.special_hashing[types.FunctionType] = lambda x: (
+        #     "function",
+        #     x.__name__,
+        # )  # TODO: better semantics
         self.special_hashing[type] = lambda x: ("type", x.__name__)
         self.special_hashing[slice] = lambda x: ("slice", x.start, x.stop, x.step)
         self.special_hashing[bytes] = lambda x: ("bytes", hashlib.sha256(x).hexdigest())
