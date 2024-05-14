@@ -113,7 +113,7 @@ class CacheHelper:
 
         try:
             return pickle.load(bf.BlobFile(self.save_location + "/" + key, "rb"))
-        except (FileNotFoundError, EOFError):
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             raise KeyError(key)
 
     def _set_kv(self, key: str, value):
