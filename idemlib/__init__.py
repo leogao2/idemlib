@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import inspect
 import pickle
 import re
@@ -5,6 +6,8 @@ import time
 from collections import defaultdict
 from functools import partial, wraps
 from typing import Any, Callable, Iterable, Optional, TypeVar, Union, Coroutine, Awaitable
+import fcntl
+import os
 
 import blobfile as bf
 
@@ -121,8 +124,23 @@ class CacheHelper:
             self._cache[key] = value
             return
 
-        with bf.BlobFile(self.save_location + "/" + key, "wb") as f:
-            pickle.dump(value, f)
+        with self._lock_kv(key):
+            with bf.BlobFile(self.save_location + "/" + key, "wb") as f:
+                pickle.dump(value, f)
+    
+    @contextmanager
+    def _lock_kv(self, key: str, shared: bool = False):
+        if not self.save_location.startswith("az://"):
+            os.makedirs(self.save_location, exist_ok=True)
+            lock_file = self.save_location + "/" + key + ".lock"
+            fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+            fcntl.flock(fd, fcntl.LOCK_EX if not shared else fcntl.LOCK_SH)
+            yield
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+        else:
+            # TODO: blobfile lock
+            yield
 
     def _update_source_cache(self, fname, lineno, new_key):
         assert "/tmp/ipykernel" not in fname, "Can't use @cache autofill in a notebook!"
